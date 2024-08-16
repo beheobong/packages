@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #import "FLTGoogleMapJSONConversions.h"
+#import "FGMMarkerUserData.h"
 
 /// Returns dict[key], or nil if dict[key] is NSNull.
 id FGMGetValueOrNilFromDict(NSDictionary *dict, NSString *key) {
@@ -26,6 +27,12 @@ FGMPlatformLatLng *FGMGetPigeonLatLngForCoordinate(CLLocationCoordinate2D coord)
   return [FGMPlatformLatLng makeWithLatitude:coord.latitude longitude:coord.longitude];
 }
 
+GMSCoordinateBounds *FGMGetCoordinateBoundsForPigeonLatLngBounds(FGMPlatformLatLngBounds *bounds) {
+  return [[GMSCoordinateBounds alloc]
+      initWithCoordinate:FGMGetCoordinateForPigeonLatLng(bounds.northeast)
+              coordinate:FGMGetCoordinateForPigeonLatLng(bounds.southwest)];
+}
+
 FGMPlatformLatLngBounds *FGMGetPigeonLatLngBoundsForCoordinateBounds(GMSCoordinateBounds *bounds) {
   return
       [FGMPlatformLatLngBounds makeWithNortheast:FGMGetPigeonLatLngForCoordinate(bounds.northEast)
@@ -37,6 +44,46 @@ FGMPlatformCameraPosition *FGMGetPigeonCameraPositionForPosition(GMSCameraPositi
                                              target:FGMGetPigeonLatLngForCoordinate(position.target)
                                                tilt:position.viewingAngle
                                                zoom:position.zoom];
+}
+
+GMSCameraPosition *FGMGetCameraPositionForPigeonCameraPosition(
+    FGMPlatformCameraPosition *position) {
+  return [GMSCameraPosition cameraWithTarget:FGMGetCoordinateForPigeonLatLng(position.target)
+                                        zoom:position.zoom
+                                     bearing:position.bearing
+                                viewingAngle:position.tilt];
+}
+
+extern GMSMapViewType FGMGetMapViewTypeForPigeonMapType(FGMPlatformMapType type) {
+  switch (type) {
+    case FGMPlatformMapTypeNone:
+      return kGMSTypeNone;
+    case FGMPlatformMapTypeNormal:
+      return kGMSTypeNormal;
+    case FGMPlatformMapTypeSatellite:
+      return kGMSTypeSatellite;
+    case FGMPlatformMapTypeTerrain:
+      return kGMSTypeTerrain;
+    case FGMPlatformMapTypeHybrid:
+      return kGMSTypeHybrid;
+  }
+}
+
+FGMPlatformCluster *FGMGetPigeonCluster(GMUStaticCluster *cluster,
+                                        NSString *clusterManagerIdentifier) {
+  NSMutableArray *markerIDs = [[NSMutableArray alloc] initWithCapacity:cluster.items.count];
+  GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] init];
+
+  for (GMSMarker *marker in cluster.items) {
+    [markerIDs addObject:FGMGetMarkerIdentifierFromMarker(marker)];
+    bounds = [bounds includingCoordinate:marker.position];
+  }
+
+  return [FGMPlatformCluster
+      makeWithClusterManagerId:clusterManagerIdentifier
+                      position:FGMGetPigeonLatLngForCoordinate(cluster.position)
+                        bounds:FGMGetPigeonLatLngBoundsForCoordinateBounds(bounds)
+                     markerIds:markerIDs];
 }
 
 @implementation FLTGoogleMapJSONConversions
@@ -120,11 +167,6 @@ NSString *const kHeatmapGradientColorMapSizeKey = @"colorMapSize";
   return [[GMSCoordinateBounds alloc]
       initWithCoordinate:[FLTGoogleMapJSONConversions locationFromLatLong:latlongs[0]]
               coordinate:[FLTGoogleMapJSONConversions locationFromLatLong:latlongs[1]]];
-}
-
-+ (GMSMapViewType)mapViewTypeFromTypeValue:(NSNumber *)typeValue {
-  int value = [typeValue intValue];
-  return (GMSMapViewType)(value == 0 ? 5 : value);
 }
 
 + (nullable GMSCameraUpdate *)cameraUpdateFromArray:(NSArray *)channelValue {
