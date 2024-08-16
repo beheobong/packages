@@ -518,6 +518,11 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
   _player.volume = (float)((volume < 0.0) ? 0.0 : ((volume > 1.0) ? 1.0 : volume));
 }
 
+- (void)changeBandWidth:(double)bandwidth {
+    AVPlayerItem *currentItem = _player.currentItem;
+    currentItem.preferredPeakBitRate = (int)bandwidth;
+}
+
 - (void)setPlaybackSpeed:(double)speed {
   // See https://developer.apple.com/library/archive/qa/qa1772/_index.html for an explanation of
   // these checks.
@@ -779,6 +784,11 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
 - (void)setVolume:(double)volume forPlayer:(NSInteger)textureId error:(FlutterError **)error {
   FVPVideoPlayer *player = self.playersByTextureId[@(textureId)];
   [player setVolume:volume];
+}
+
+- (void)changeBandWidth:(double)bandwidth forPlayer:(NSInteger)textureId error:(FlutterError **)error {
+  FVPVideoPlayer *player = self.playersByTextureId[@(textureId)];
+  [player changeBandWidth:bandwidth];
 }
 
 - (void)setPlaybackSpeed:(double)speed forPlayer:(NSInteger)textureId error:(FlutterError **)error {

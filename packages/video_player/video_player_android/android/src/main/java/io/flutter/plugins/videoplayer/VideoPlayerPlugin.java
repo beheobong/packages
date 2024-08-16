@@ -8,6 +8,8 @@ import android.content.Context;
 import android.os.Build;
 import android.util.LongSparseArray;
 import androidx.annotation.NonNull;
+import androidx.media3.common.util.UnstableApi;
+
 import io.flutter.FlutterInjector;
 import io.flutter.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -28,6 +30,7 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 /** Android platform implementation of the VideoPlayerPlugin. */
+@UnstableApi
 public class VideoPlayerPlugin implements FlutterPlugin, AndroidVideoPlayerApi {
   private static final String TAG = "VideoPlayerPlugin";
   private final LongSparseArray<VideoPlayer> videoPlayers = new LongSparseArray<>();
@@ -157,6 +160,11 @@ public class VideoPlayerPlugin implements FlutterPlugin, AndroidVideoPlayerApi {
   public void setVolume(@NonNull VolumeMessage arg) {
     VideoPlayer player = videoPlayers.get(arg.getTextureId());
     player.setVolume(arg.getVolume());
+  }
+
+  public void changeBandWidth(@NonNull VolumeMessage arg) {
+    VideoPlayer player = videoPlayers.get(arg.getTextureId());
+    player.changeBandWidth(arg.getVolume());
   }
 
   public void setPlaybackSpeed(@NonNull PlaybackSpeedMessage arg) {

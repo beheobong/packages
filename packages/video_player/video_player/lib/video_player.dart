@@ -59,6 +59,7 @@ class VideoPlayerValue {
     this.rotationCorrection = 0,
     this.errorDescription,
     this.isCompleted = false,
+    this.bandwidth = 0,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -109,6 +110,9 @@ class VideoPlayerValue {
 
   /// The current volume of the playback.
   final double volume;
+
+  /// bandwidth
+  final double bandwidth;
 
   /// The current speed of the playback.
   final double playbackSpeed;
@@ -168,6 +172,7 @@ class VideoPlayerValue {
     bool? isLooping,
     bool? isBuffering,
     double? volume,
+    double? bandwidth,
     double? playbackSpeed,
     int? rotationCorrection,
     String? errorDescription = _defaultErrorDescription,
@@ -185,6 +190,7 @@ class VideoPlayerValue {
       isLooping: isLooping ?? this.isLooping,
       isBuffering: isBuffering ?? this.isBuffering,
       volume: volume ?? this.volume,
+      bandwidth: bandwidth ?? this.bandwidth,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       rotationCorrection: rotationCorrection ?? this.rotationCorrection,
       errorDescription: errorDescription != _defaultErrorDescription
@@ -208,6 +214,7 @@ class VideoPlayerValue {
         'isLooping: $isLooping, '
         'isBuffering: $isBuffering, '
         'volume: $volume, '
+        'bandwidth: $bandwidth, '
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
         'isCompleted: $isCompleted),';
@@ -232,6 +239,7 @@ class VideoPlayerValue {
           size == other.size &&
           rotationCorrection == other.rotationCorrection &&
           isInitialized == other.isInitialized &&
+          bandwidth == other.bandwidth &&
           isCompleted == other.isCompleted;
 
   @override
@@ -251,6 +259,7 @@ class VideoPlayerValue {
         rotationCorrection,
         isInitialized,
         isCompleted,
+        bandwidth,
       );
 }
 
@@ -608,6 +617,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _videoPlayerPlatform.setVolume(_textureId, value.volume);
   }
 
+
+  Future<void> _applyBandWidth() async {
+    if (_isDisposedOrNotInitialized) {
+      return;
+    }
+    await _videoPlayerPlatform.changeBandWidth(_textureId, value.bandwidth);
+  }
+
   Future<void> _applyPlaybackSpeed() async {
     if (_isDisposedOrNotInitialized) {
       return;
@@ -659,6 +676,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> setVolume(double volume) async {
     value = value.copyWith(volume: volume.clamp(0.0, 1.0));
     await _applyVolume();
+  }
+
+
+  /// Sets the audio volume of [this].
+  ///
+  /// [volume] indicates a value between 0.0 (silent) and 1.0 (full volume) on a
+  /// linear scale.
+  Future<void> changeBandWidth(double bandwidth) async {
+    value = value.copyWith(bandwidth: bandwidth);
+    await _applyBandWidth();
   }
 
   /// Sets the playback speed of [this].

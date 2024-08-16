@@ -89,6 +89,14 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
     ));
   }
 
+   @override
+  Future<void> changeBandWidth(int textureId, double bandwidth) {
+    return _api.changeBandWidth(VolumeMessage(
+      textureId: textureId,
+      volume: bandwidth,
+    ));
+  }
+
   @override
   Future<void> setPlaybackSpeed(int textureId, double speed) {
     assert(speed > 0);
